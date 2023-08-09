@@ -22,19 +22,19 @@ source $(python -c 'import site, os; print(os.path.join(site.getsitepackages()[0
 
 export PADDLE_XCCL_BACKEND="intel_gpu"
 export PADDLE_DISTRI_BACKEND="xccl"
-export FLAGS_selected_intel_gpus="0,1"
+export FLAGS_selected_intel_gpus="0,1,2,3"
 export CCL_ZE_IPC_EXCHANGE=sockets
 
-log_dir="log_export_ernie_345M_mp2"
+log_dir="log_export_ernie_345M_mp4"
 rm -rf ${log_dir}
 
-output_dir="output_ernie_345M_mp2"
+output_dir="output_ernie_345M_mp4"
 rm -rf ${output_dir}
 
-# 345M mp2 export
-python -m paddle.distributed.launch --log_dir ${log_dir} --devices "0,1" \
+# 345M mp4 export
+python -m paddle.distributed.launch --log_dir ${log_dir} --devices "0,1,2,3" \
     ./tools/auto_export.py \
     -c ./ppfleetx/configs/nlp/ernie/auto/finetune_ernie_345M_single_card.yaml \
-    -o Distributed.mp_degree=2 \
+    -o Distributed.mp_degree=4 \
     -o Global.device=intel_gpu \
     -o Engine.save_load.output_dir=${output_dir}

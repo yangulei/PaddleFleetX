@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+unset CUDA_VISIBLE_DEVICES
+
 # load oneapi compiler
 source ${HOME}/intel/oneapi/compiler/latest/env/vars.sh
 
@@ -22,19 +24,20 @@ source $(python -c 'import site, os; print(os.path.join(site.getsitepackages()[0
 
 export PADDLE_XCCL_BACKEND="intel_gpu"
 export PADDLE_DISTRI_BACKEND="xccl"
-export FLAGS_selected_intel_gpus="0,1"
+export FLAGS_selected_intel_gpus="0,1,2,3"
 export CCL_ZE_IPC_EXCHANGE=sockets
+# export GLOG_v=10
 
-log_dir="log_export_ernie_345M_mp2"
+# # ENV for ATS-M, double type
+# export OverrideDefaultFP64Settings=1
+# export IGC_EnableDPEmulation=1
+
+log_dir="log_inference_ernie_345M_mp4"
 rm -rf ${log_dir}
 
-output_dir="output_ernie_345M_mp2"
-rm -rf ${output_dir}
+output_dir="output_ernie_345M_mp4"
 
-# 345M mp2 export
-python -m paddle.distributed.launch --log_dir ${log_dir} --devices "0,1" \
-    ./tools/auto_export.py \
-    -c ./ppfleetx/configs/nlp/ernie/auto/finetune_ernie_345M_single_card.yaml \
-    -o Distributed.mp_degree=2 \
-    -o Global.device=intel_gpu \
-    -o Engine.save_load.output_dir=${output_dir}
+python -u -m paddle.distributed.launch \
+    --devices "0,1,2,3" \
+    --log_dir ${log_dir} \
+    projects/ernie/inference.py --model_dir ${output_dir} --mp_degree 4 --device intel_gpu
